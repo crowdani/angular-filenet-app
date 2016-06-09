@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" ng-app="myApp" class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>FileNet Slick</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
+    
+    
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-file-dnd/dist/angular-file-dnd.min.js"></script>
+    <script src="bower_components/ngprogress/build/ngprogress.js"></script>
+    <link rel="stylesheet" href="bower_components/ngprogress/ngProgress.css">
+    <script src="bower_components/webcamjs/webcam.js"></script>
+    <script src="bower_components/angular-camera/angular-camera.js"></script>
+    <script src="bower_components/smartcrop/smartcrop.js"></script>
+    <script src="bower_components/ng-img-crop/compile/minified/ng-img-crop.js"></script>
+    <link rel="stylesheet" href="bower_components/ng-img-crop/compile/minified/ng-img-crop.css">
+    
+    <link  href="bower_components/cropperjs/dist/cropper.css" rel="stylesheet">
+    <script src="bower_components/cropperjs/dist/cropper.js"></script>
+    <script src="bower_components/ng-cropper/dist//ngCropper.all.js"></script>
+    <script src="bower_components/ng-cropper/ngCropper.js"></script>
+    <link href="bower_components/ng-cropper/dist/ngCropper.all.css" rel="stylesheet">
+
+    <script src="app.module.js"></script>
+    <script src="app.config.js"></script>
+    <script src="components/Document-ListView/document-list.module.js"></script>
+    <script src="components/Document-ListView/document-list.component.js"></script>
+    <script src="components/search-listview/search-listview.module.js"></script>
+    <script src="components/search-listview/search-listview.component.js"></script>
+    <script src="components/preview/preview.module.js"></script>
+    <script src="components/preview/preview.component.js"></script>
+    <script src="components/data-capture/WebCam/data-captureWebCam.module.js"></script>
+    <script src="components/data-capture/WebCam/data-captureWebCam.component.js"></script>
+    <script src="components/data-capture/dnd/data-capturednd.module.js"></script>
+    <script src="components/data-capture/dnd/data-capturednd.component.js"></script>
+
+    
+    
+    <script src="core/core.module.js"></script>
+    <script src="core/service/cmisservice/cmis.module.js"></script>
+    <script src="core/service/cmisservice/cmis.service.js"></script>
+    <script src="core/service/datacapservice/datacap.module.js"></script>
+    <script src="core/service/datacapservice/datacap.service.js"></script>
+    
+    
+    <script src="core/service/alchemyAPI/alchemyapi.module.js"></script>
+    <script src="core/service/alchemyAPI/alchemyapi.service.js"></script>
+      <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
+  -->
+</head>
+
+ <body ng-app="myApp">
+     <div class="navbar navbar-inverse navbar-fixed-top" >
+        <div class="container">
+            <div class="navbar-header">
+		      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+		          <span class="sr-only">Toggle navigation</span>
+		          <span class="icon-bar"></span>
+		          <span class="icon-bar"></span>
+		          <span class="icon-bar"></span>
+		      </button>
+		      <a class="navbar-brand" rel="home" href="/" title="FileNet Slick UI">FileNet Slick</a>
+	       </div>
+            <div id="navbar" class="collapse navbar-collapse">
+		      <ul class="nav navbar-nav">
+                  <li><a href="#!/Admin">Search All</a></li>
+                  <li><a href="#!/datacapturednd">DataCapture File</a></li>
+                  <li><a href="#!/datacaptureWebCam">DataCapture WebCam</a></li>
+		      </ul>
+	   </div>
+     </div>
+     </div>
+        
+
+      <div class="container theme-showcase" role="main">
+          <div class="view-container">
+                <div ng-view class="view-frame"></div>
+          </div>
+    </div>
+</body>
+</html>

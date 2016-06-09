@@ -1,0 +1,708 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="w3.css">
+<title>This is to capture cheques</title>
+</head>
+<body>
+
+	<style>
+	#holder { border: 10px dashed #ccc; width: 100%; height: 300px; margin-top: 50px;}
+	#holder.hover { border: 10px dashed #0c0; }
+	#holder img { display: block; margin: 0px; width: 100%; height: 100%; overflow: scroll;}
+	#holder p { margin: 10px; font-size: 14px; }
+	progress { width: 100%; }
+	progress:after { content: '%'; }
+	.fail { background: #c00; padding: 2px; color: #fff; }
+	.hidden { display: none !important;}
+
+	</style>
+	
+	
+	<header class="w3-container w3-teal">
+		<h1>Cheque Capture</h1>
+	</header>
+	
+	<div class="w3-container">
+		<div id="holder" class="w3-container" ></div> 
+			<p id="upload" class="hidden"><label><br><input type="file"></label></p>
+			<p id="filereader"></p>
+			<p id="formdata"></p>
+			<p id="progress" visible="false" style="display: none;"></p>
+			<p><progress id="uploadprogress" min="0" max="100" value="0" visible="false" style="display: none;">0</progress></p>
+	</div>
+	<div class="w3-progress-container">
+		<div id="myBar" class="w3-progressbar w3-green" style="width:1%"></div>
+	</div>
+	
+	<span id='ct' style="background-color: #FFFF00">0</span>
+	
+	
+	<div class="w3-container">
+		<div id='resultHtml' class="w3-container"></div>
+	</div>
+	
+	
+	<footer class="w3-container w3-teal">
+		<h5>Built By : Daniel Crow</h5>
+	</footer>
+
+
+<script>
+var url = 'http://169.50.64.166:8070/ServicewTM.svc';
+var application = "TransactionalCapture";
+var user = "admin";
+var station = "1";
+var password = "admin";
+var job = "TransactionalCapture";
+var queueId = "";
+var dcoFile = 'scan.xml';
+var batchId ='';
+var transId = '';
+var fileList;
+var stateDone = 4;
+
+
+//Scope the Variables up here.
+var CheckType = "";
+var Amount="";
+var LAR="";
+var CAR=""
+var CARLocation = "";
+var LARLocation = "";
+var CheckDate = "";
+var PayeeName = "";
+var width = 0;
+
+var MICR
+//var x=0;
+
+function display_c(start){
+    window.start = parseFloat(start);
+    var end = 0 // change this to stop the counter at a higher value
+    var refresh=1000; // Refresh rate in milli seconds
+    if(window.start >= end ){
+        mytime=setTimeout('display_ct()',refresh)
+    } else {
+        alert("Time Over ");
+    }
+}
+
+function display_ct() {
+    var x = window.start + 1
+    document.getElementById('ct').innerHTML = x;
+    tt=display_c(x);
+}
+
+function stop() {
+    clearTimeout(mytime);
+}
+
+
+
+function reset(){
+var elem = document.getElementById("myBar");
+	elem.style.width = '1%';
+}
+
+function move() {
+    var elem = document.getElementById("myBar");
+    
+	console.log(width);
+	    //if (width < 100) {
+            width = width + 10;
+            elem.style.width = width + '%';
+        //}
+	}
+	
+
+function viewHtml() {
+	var win = window.open();
+	win.document.body.innerHTML = document.getElementById('resultHtml').innerHTML;
+}
+
+var holder = document.getElementById('holder'),
+    tests = {
+      filereader: typeof FileReader != 'undefined',
+      dnd: 'draggable' in document.createElement('span'),
+      formdata: !!window.FormData,
+      progress: "upload" in new XMLHttpRequest
+    }, 
+    support = {
+      filereader: document.getElementById('filereader'),
+      formdata: document.getElementById('formdata'),
+      progress: document.getElementById('progress')
+    },
+    acceptedTypes = {
+      'image/png': true,
+      'image/jpeg': true,
+      'image/gif': true,
+	  'image/tif': true,
+	  'image/tiff': true,
+	  'application/pdf': true
+    },
+    progress = document.getElementById('uploadprogress'),
+    fileupload = document.getElementById('upload');
+
+"filereader formdata progress".split(' ').forEach(function (api) {
+  if (tests[api] === false) {
+    support[api].className = 'fail';
+  } else {
+    support[api].className = 'hidden';
+  }
+});
+
+function previewfile(file) {
+  if (tests.filereader === true && acceptedTypes[file.type] === true) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      var image = new Image();
+      image.src = event.target.result;
+	  holder.innerHTML = "";
+      holder.appendChild(image);
+    };
+
+    reader.readAsDataURL(file);
+  }  else {
+    holder.innerHTML += '<p>Uploaded ' + file.name + ' ' + (file.size ? (file.size/1024|0) + 'K' : '');
+    console.log(file);
+  }
+}
+
+function readfiles(files) {
+	fileList = files;
+	reset();
+	//call logOn for use with a workflow
+	//logOn();
+	//call transRun to use a transaction
+	display_c(0);
+	transRun();
+	
+}
+
+//start transaction
+function transRun() {
+	move()
+	console.log(fileList[0].name);
+//	for (i = 0; i < 100; i++) { 
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('start transaction complete');
+		console.log(this.responseText);
+		var jsonResponse = JSON.parse(this.responseText);
+		transId = jsonResponse;
+		transUploadPageFile();		
+	}
+	xhr.open("get", url + "/Transaction/Start",true);
+	xhr.setRequestHeader("Accept", "application/json");
+	xhr.send();
+	//}
+}
+/*
+function transUploadPageFileForOCR() {
+move();
+    var formData = new FormData();
+	var xml = "<B id=\"Transaction\"><V n=\"TYPE\">Transaction</V><P id=\"TM000001\"><V n=\"TYPE\">Page</V><V n=\"hr_CheckCountry\">UK</V>";
+    xml +="<V n=\"IMAGEFILE\">" + fileList[0].name + "</V><V n=\"DATAFILE\">" + fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) + ".xml</V><V n=\"STATUS\">0</V></P></B>";
+    formData.append("XML",  new Blob([ xml ], { type: "text/xml" }));
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/scan/xml",true);
+      xhr.onload = function() {    
+		transUploadDataFile();
+      };
+      xhr.send(formData);
+    }
+}
+*/
+
+function transUploadPageFile() {
+move();
+    var formData = new FormData();
+	var xml = "<B id=\"Transaction\"><V n=\"TYPE\">Transaction</V><P id=\"TM000001\"><V n=\"TYPE\">Page</V>";
+    xml +="<V n=\"IMAGEFILE\">" + fileList[0].name + "</V><V n=\"DATAFILE\">" + fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) + ".xml</V><V n=\"STATUS\">0</V></P></B>";
+    formData.append("XML",  new Blob([ xml ], { type: "text/xml" }));
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/scan/xml",true);
+      xhr.onload = function() {    
+		transUploadDataCheckProcessing();
+      };
+      xhr.send(formData);
+    }
+}
+
+
+function transUploadDataCheckProcessing() {
+
+	move();
+    var formData = new FormData();
+	var xml="<?xml-stylesheet type=\"text/xsl\" href=\"..\..\dco.xsl\"?><P id=\"TM000001\"><V n=\"hr_CheckCountry\">UK</V></P>"
+	formData.append("XML",  new Blob([ xml ], { type: "text/xml" }));
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/"+ fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) +"/xml",true);
+      xhr.onload = function() {    
+		transUploadDoc();
+      };
+      xhr.send(formData);
+    }
+} 
+
+function transUploadDataICRFile() {
+	move();
+	var XML ="";
+		//Lets work out where the PayName is
+		var coord = LARLocation.split(",");
+		var xCoord = 2 + coord[0];
+		var yCoord  =  (coord[1] - (coord[3]-coord[1])) - 20;
+		var width = coord[2];
+		var height = coord[1];
+		var PayeeNameBox = xCoord + "," + yCoord + "," + width + "," + height;
+		console.log(PayeeNameBox);
+		
+		//Lets work out where the Date is
+		var coord = CARLocation.split(",");
+		//var yCoord = coord[1] - (( coord[3] - coord[1]) * 3.2);
+		var yCoord = 189;
+		var xCoord  =  Number(coord[0]) + 106; 
+		var width = (Number(coord[2])+ 200);
+		var height = coord[3];
+		var DateBox = xCoord + "," + yCoord + "," + width + "," + height;
+		console.log("Date Area " , DateBox);
+		xml="<?xml-stylesheet type=\"text/xsl\" href=\"..\..\dco.xsl\"?><P id=\"TM000001\"><F id=\"PayeeName\"><V n=\"hr_RecogEngine\">ICR/C</V><V n=\"TYPE\">PayeeName</V><V n=\"Position\">"+ PayeeNameBox + "</V><V n=\"STATUS\">0</V><V n=\"writingStyle\">1</V><V n=\"fieldType\">4096</V></F><F id=\"ChequeDate\"><V n=\"TYPE\">ChequeDate</V><V n=\"Position\">" +  DateBox + "</V><V n=\"STATUS\">0</V><V n=\"writingStyle\">2</V><V n=\"fieldType\">512</V><V n=\"hr_RecogEngine\">ICR/C</V></F></P>"
+	
+	var formData = new FormData();
+	
+	formData.append("XML",  new Blob([ xml ], { type: "text/xml" }));
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/"+ fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) +"/xml",true);
+      xhr.onload = function() {    
+		transExecute();
+      };
+      xhr.send(formData);
+    }
+}
+
+function transUploadDataMICRFile(){
+	micrBox = "10,900,1600,1110"
+	xml="<?xml-stylesheet type=\"text/xsl\" href=\"..\..\dco.xsl\"?><P id=\"TM000001\"><F id=\"MICR\"><V n=\"hr_RecogEngine\">ICR/C</V><V n=\"TYPE\">MICR</V><V n=\"Position\">"+ micrBox + "</V><V n=\"STATUS\">0</V><V n=\"c_ft\">E13B</V></F></P>"
+	var formData = new FormData();
+	
+	formData.append("XML",  new Blob([ xml ], { type: "text/xml" }));
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/"+ fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) +"/xml",true);
+      xhr.onload = function() {    
+		transExecuteMICR();
+      };
+      xhr.send(formData);
+    }
+
+}
+
+
+function transUploadDoc() {
+	move();
+    var formData = tests.formdata ? new FormData() : null;
+    for (var i = 0; i < fileList.length; i++) {
+      if (tests.formdata) formData.append('file', fileList[i]);
+      previewfile(fileList[i]);
+    }
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Transaction/SetFile/" + transId + "/"+ fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) +"/"+fileList[0].name.substr(fileList[0].name.lastIndexOf('.')+1),true);
+      xhr.onload = function() {
+		checkData();
+      };
+      xhr.send(formData);
+    }
+}
+
+function transExecute() {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('rules complete');
+		//transEnd();
+		//transGetHtml();
+		GetCompleteChequeData(false);
+	}
+	var message = JSON.stringify({
+	"TransactionId": transId,
+	"Application": "Transaction",
+	"Workflow": "Transaction",
+	"PageFile":"scan.xml",
+	"Rulesets":"ParaScript"
+});
+	xhr.open("post", url + "/Transaction/Execute",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.setRequestHeader("Accept", "text/json");
+	
+	xhr.send(message);
+}
+
+
+function transExecuteMICR() {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('rules complete');
+		//transEnd();
+		//transGetHtml();
+		
+		GetCompleteChequeData(true);
+	}
+	var message = JSON.stringify({
+	"TransactionId": transId,
+	"Application": "Transaction",
+	"Workflow": "Transaction",
+	"PageFile":"scan.xml",
+	"Rulesets":"RecognizeFields"
+});
+	xhr.open("post", url + "/Transaction/Execute",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.setRequestHeader("Accept", "text/json");
+	
+	xhr.send(message);
+}
+
+function checkData(){
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('rules complete');
+		//transEnd();
+		//transExecute();
+		VerifyData();
+	}
+	var message = JSON.stringify({
+	"TransactionId": transId,
+	"Application": "Transaction",
+	"Workflow": "Transaction",
+	"PageFile":"scan.xml",
+	"Rulesets":"ConvertColor,ProcessCheck"
+});
+	xhr.open("post", url + "/Transaction/Execute",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.setRequestHeader("Accept", "text/json");
+	
+	xhr.send(message);
+
+}
+
+
+function transGetHtml() {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('getHtml complete');
+		console.log(this.responseText);	
+		parser = new DOMParser();
+		xmlDoc = parser.parseFromString(this.responseText,"text/xml");
+		
+		//var fieldName = xmlDoc.getElementsByTagName("F")[0].childNodes[0].nodeValue;
+		var fieldNames = xmlDoc.getElementsByTagName("F");
+		var htmlToDisplay = "<table class=\"w3-table w3-bordered w3-striped w3-card-4\"><thead><tr class=\"w3-blue\"><th>Field name</th><th>Value</th></tr></thead>"
+		console.log(fieldNames.length);
+		console.log(fieldNames);
+		for(var y=0;y<fieldNames.length;y++){
+		
+			var fieldName = xmlDoc.getElementsByTagName("F")[y];
+			console.log("Field Name : " , fieldName.getAttribute("id"));
+		
+			var characterVals = fieldName.getElementsByTagName("C")
+			var fieldValue = "";
+			for(var x=0;x<characterVals.length;x++){
+				var characterVal = characterVals[x].innerHTML;
+				fieldValue = fieldValue + String.fromCharCode(characterVal)
+			
+				console.log(fieldValue);
+			}
+			htmlToDisplay = htmlToDisplay + "<tr><td>" + fieldName.getAttribute("id") + "</td><td>"+  fieldValue + "</td></tr>";
+		}
+		htmlToDisplay = htmlToDisplay + "</table>";
+	//	console.log
+		document.getElementById('resultHtml').innerHTML = htmlToDisplay;
+		transEnd();		
+	}
+	xhr.open("get", url + "/Transaction/GetFile/" + transId + "/" + fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) + "/xml",true);
+	xhr.setRequestHeader("Accept", "text/html");
+	xhr.send();
+}
+
+
+function CreateResults(){
+move();
+console.log(Amount);
+		var htmlToDisplay = "<table id=\"resultsGrid\" class=\"w3-table w3-bordered w3-striped w3-card-4\"><thead><tr class=\"w3-blue\"><th>Field name</th><th>Value</th></tr></thead>"
+		var htmlToDisplay = htmlToDisplay + "<tr><td>Amount</td><td>" + Amount + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>LAR</td><td>" + CAR + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>CAR</td><td>" + LAR + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>CAR Location</td><td>" + CARLocation + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>PayeeName</td><td>" + PayeeName + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>Lar Location</td><td>" + LARLocation + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>MICR</td><td>" + MICR + "</td></tr>";
+		var htmlToDisplay = htmlToDisplay + "<tr><td>Cheque Date</td><td>" + CheckDate + "</td></tr>";
+		
+		
+		
+		var htmlToDisplay = htmlToDisplay + "</table>"
+		document.getElementById('resultHtml').innerHTML = htmlToDisplay;
+		stop();
+		//transEnd();
+}
+
+function GetCompleteChequeData(state) {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		parser = new DOMParser();
+		xmlDoc = parser.parseFromString(this.responseText,"text/xml");
+
+		var fieldNames = xmlDoc.getElementsByTagName("F");
+		for(var y=0;y<fieldNames.length;y++){
+			var fieldName = xmlDoc.getElementsByTagName("F")[y];
+			var fieldNameId = fieldName.getAttribute("id");
+			console.log("Field Name : " , fieldNameId);
+			var characterVals = fieldName.getElementsByTagName("C")
+			var fieldValue = "";
+			for(var x=0;x<characterVals.length;x++){
+				var characterVal = characterVals[x].innerHTML;
+				fieldValue = fieldValue + String.fromCharCode(characterVal)
+			
+				console.log(fieldValue);
+			}
+			switch (fieldNameId){
+				case "PayeeName":
+					PayeeName = fieldValue;
+					break;
+				case "ChequeDate":
+					CheckDate = fieldValue;
+					break;
+				case "MICR":
+					MICR = fieldValue;
+					break;
+				}
+				
+		}
+		if(state){
+			CreateResults();		
+		}else{
+			transUploadDataMICRFile();
+		}
+		
+	}
+	
+	
+	xhr.open("get", url + "/Transaction/GetFile/" + transId + "/" + fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) + "/xml",true);
+	xhr.setRequestHeader("Accept", "text/html");
+	xhr.send();
+}
+
+function VerifyData() {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		parser = new DOMParser();
+		xmlDoc = parser.parseFromString(this.responseText,"text/xml");
+		console.log(xmlDoc);
+		var fieldNames = xmlDoc.getElementsByTagName("F");
+		for(var y=0;y<fieldNames.length;y++){
+			var fieldName = xmlDoc.getElementsByTagName("F")[y];
+			var fieldNameId = fieldName.getAttribute("id");
+			console.log("Field Name : " , fieldNameId);
+			var characterVals = fieldName.getElementsByTagName("C")
+			var fieldValue = "";
+			for(var x=0;x<characterVals.length;x++){
+				var characterVal = characterVals[x].innerHTML;
+				fieldValue = fieldValue + String.fromCharCode(characterVal)
+			
+				console.log(fieldValue);
+			}
+			switch (fieldNameId){
+				case "Amount":
+					Amount = fieldValue;
+					break;
+				case "CAR":
+					CAR = fieldValue;
+					CARLocation = fieldName.getElementsByTagName("V")[0].innerHTML
+					console.log("Car Location " , CARLocation);
+					break;
+				case "LAR":
+					LARLocation = fieldName.getElementsByTagName("V")[0].innerHTML
+				
+					LAR = fieldValue;
+					console.log("Lar Location ", LARLocation)
+					break;
+				}	
+		}
+		if(LAR ==""){
+			
+			alert("Bad Cheque");
+			stop();
+		}else{
+			transUploadDataICRFile();		
+			//alert("Finished");
+		}
+	}
+	
+	
+	xhr.open("get", url + "/Transaction/GetFile/" + transId + "/" + fileList[0].name.substr(0,fileList[0].name.lastIndexOf('.')) + "/xml",true);
+	xhr.setRequestHeader("Accept", "text/html");
+	xhr.send();
+}
+
+
+function transEnd() {
+move();
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('end transaction complete');
+	}
+	xhr.open("delete", url + "/Transaction/End/" + transId,true);
+	xhr.setRequestHeader("Accept", "text/html");
+	xhr.send();
+}
+
+//end transaction
+
+//workflow
+function logOn() {
+	var xhr = new XMLHttpRequest();
+		xhr.onload = function() {	
+		console.log(this.responseText);
+		createBatch();
+	}
+	var message = JSON.stringify({ application: application, password: password, station: station, user: user });
+	console.log(message);
+	xhr.open("post", url + "/Session/Logon",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.setRequestHeader("Accept", "text/json");	
+	xhr.send(message);
+}
+
+function createBatch() {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		var jsonResponse = JSON.parse(this.responseText);
+		queueId = jsonResponse.queueId;
+		batchId = jsonResponse.batchId;
+		console.log('new queueId: ' + jsonResponse.queueId);
+		console.log('new batchId: ' + jsonResponse.batchId);
+		uploadFile();
+	}
+	var message = JSON.stringify({ application: application, job: job });
+	xhr.open("post", url + "/Queue/CreateBatch",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.withCredentials = true;
+	xhr.setRequestHeader("Accept", "text/json");
+	xhr.send(message);
+}
+
+function uploadFile() {
+    //debugger;
+    var formData = tests.formdata ? new FormData() : null;
+    for (var i = 0; i < fileList.length; i++) {
+      if (tests.formdata) formData.append('file', fileList[i]);
+      previewfile(fileList[i]);
+    }
+    if (tests.formdata) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("post", url + "/Queue/UploadFile/" + application + "/" + queueId,true);
+      xhr.onload = function() {
+        progress.value = progress.innerHTML = 100;
+		recognize();
+      };
+
+      if (tests.progress) {
+        xhr.upload.onprogress = function (event) {
+          if (event.lengthComputable) {
+            var complete = (event.loaded / event.total * 100 | 0);
+            progress.value = progress.innerHTML = complete;
+          }
+        }
+      }
+      xhr.send(formData);
+    }
+}
+
+function recognize() {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('rules complete');
+		getHtml();
+	}
+	var message = JSON.stringify({ Result: 0, Profile: 'Analyze', Properties:{AllowOverride: true, AppName: application, BatchID: batchId, ChildrenQuantity: 0, DCOFile: dcoFile, DocsInBatch: 0, PagesInBatch: 0, Priority: 0} });
+	xhr.open("post", url + "/Rules/Execute",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.setRequestHeader("Accept", "text/json");
+	
+	xhr.send(message);
+}
+
+function getHtml() {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('getHtml complete');
+		console.log(this.responseText);
+		document.getElementById('resultHtml').innerHTML = this.responseText;
+		releaseBatch();		
+	}
+	xhr.open("get", url + "/Queue/GetFile/" + application + "/" + queueId + "/tm000001/html",true);
+	xhr.setRequestHeader("Accept", "text/html");
+	xhr.send();
+}
+
+function releaseBatch() {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('batch released: ' + queueId);
+		batchId = '';
+		queueId = '';
+		logOff();
+	}
+	var message = "";
+	xhr.open("put", url + "/Queue/ReleaseBatch/" + application + "/" + queueId + "/finished",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+	xhr.send(message);
+}
+
+function logOff() {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function() {
+		console.log('logOff complete');
+		fileList.length=0;
+	}
+	console.log(document.cookie);
+	var message = "";	
+	xhr.open("post", url + "/Session/Logoff",true);
+	xhr.setRequestHeader('Content-type','text/json; charset=utf-8');
+    xhr.setRequestHeader("Connection", "close");
+	xhr.send(message);
+}
+
+if (tests.dnd) { 
+  holder.ondragover = function () { this.className = 'hover'; return false; };
+  holder.ondragend = function () { this.className = ''; return false; };
+  holder.ondrop = function (e) {
+    this.className = '';
+    e.preventDefault();
+    readfiles(e.dataTransfer.files);
+  }
+} else {
+  fileupload.className = 'hidden';
+  fileupload.querySelector('input').onchange = function () {
+    readfiles(this.files);
+  };
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+angular.module('core', ['core.service.cmisservice','core.service.datacap','core.service.alchemyapi']);

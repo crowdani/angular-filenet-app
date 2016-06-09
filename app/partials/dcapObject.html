@@ -1,0 +1,57 @@
+<h4>Document Type : </h4><p> {{properties.type}}</p>
+<div ng-switch on="properties.type">
+    <div ng-switch-when="DrivingLicense">
+       <div class="table-responsive">          
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Driving License Field</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(key, value) in properties.props">
+                        <td> {{key}} </td> <td> {{ value }} </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div ng-switch-when="Passport">
+       <div class="table-responsive">          
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Passport Field</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(key, value) in properties.props">
+                        <td> {{key}} </td> <td> {{ value }} </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div ng-switch-when="Cheque">
+       <div class="table-responsive">          
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Passport Field</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(key, value) in properties.props">
+                        <td> {{key}} </td> <td> {{ value }} </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

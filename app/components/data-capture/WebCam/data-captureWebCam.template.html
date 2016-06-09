@@ -1,0 +1,79 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+    <h3 class="panel-title">Actions</h3>
+    </div>
+    <div class="panel-body">
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('Passport')">Submit Passport Image</button>
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('DrivingLicense')">Submit Driving License Image</button>
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('Cheques')">Submit Cheque Image</button> 
+        <button class="btn btn-default" type="submit" ng-click="ChangeMode()">Change Capture Method</button> 
+
+    </div>
+</div>
+<!--<div class="row" ng-switch="mode">-->
+    <div class="row">
+        <!-- <div class="col-md-6" ng-switch-default>-->
+    
+
+   <!-- <div class="col-md-5" ng-switch-when="WebCam">-->
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">WebCam Capture</h3>
+                </div>
+                <div class="panel-body">                    
+                    <camera rtc="rtc" options="options">
+                        <video class="webcam-live" ng-show="rtc.type !== 'FLASH'"></video>
+                        <div class="webcam-flash" ng-show="rtc.type === 'FLASH'"></div>
+                    </camera>
+                    <div>
+                        <button id="captureBtn" ng-click="capture()">Capture</button>
+                        <button id="captureBurst" ng-click="burst()">Burst</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">Cropping Capture</h3>
+            </div>
+                
+            <div class="panel-body">                  
+                
+               <div class="img-container">
+                    
+            <img ng-src={{image}} width="400" ng-cropper ng-cropper-proxy="cropperProxy" ng-cropper-show="showEvent" ng-cropper-hide="hideEvent" ng-cropper-options="options">
+                   
+                 <button class="btn btn-default" type="submit" ng-click="preview()">Crop</button>     
+            
+        </div>      
+                <div id="result" style="display: inline;">
+                    <img ng-src="{{imageSrc}}" id="imgSrc" />
+                
+                </div>
+                
+                
+                <div class="preview-container">
+    <img  ng-src="{{preview.dataUrl}}">
+  </div>
+            </div>
+        </div>
+        </div>
+          
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Results</h3>
+               </div>
+               <div class="panel-body">
+                    <div class="image-container">
+                    <dcap-Object-WebCam click-handler="openFolder(path, name)" properties="dcapResults"></dcap-Object-WebCam> 
+                    </div>
+               </div>
+            </div>
+        </div>
+        
+    </div>
+
+  

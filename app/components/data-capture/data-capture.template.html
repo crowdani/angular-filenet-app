@@ -1,0 +1,77 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+    <h3 class="panel-title">Actions</h3>
+    </div>
+    <div class="panel-body">
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('Passport')">Submit Passport Image</button>
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('DrivingLicense')">Submit Driving License Image</button>
+        <button class="btn btn-default" type="submit" ng-click="SendToServer('Cheques')">Submit Cheque Image</button> 
+        <button class="btn btn-default" type="submit" ng-click="ChangeMode()">Change Capture Method</button> 
+
+    </div>
+</div>
+<!--<div class="row" ng-switch="mode">-->
+    <div class="row">
+        <!-- <div class="col-md-6" ng-switch-default>-->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Drag And Drop Capture</h3>
+            </div>
+            <div class="panel-body">
+                <div class="dropzone" file-dropzone="[image/png, image/jpeg, image/gif.image/tiff]"
+                  file="image" file-Name="fileName" data-max-file-size="20">
+                    </div>
+                   
+                <span class="file-name">{{imageFileName}}</span> 
+                    
+                    <img ng-src="{{image}}" class="img-responsive"   id="img"/>
+                    <span>Drop Zone</span>
+
+                
+            </div>
+        </div>
+     </div>
+    
+
+   <!-- <div class="col-md-5" ng-switch-when="WebCam">-->
+        <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">WebCam Capture</h3>
+            </div>
+            <div class="panel-body">                    
+        <camera rtc="rtc" options="options">
+            <video class="webcam-live" ng-show="rtc.type !== 'FLASH'"></video>
+            <div class="webcam-flash" ng-show="rtc.type === 'FLASH'"></div>
+        </camera>
+                  <div>
+            <button id="captureBtn" ng-click="capture()">Capture</button>
+            <button id="captureBurst" ng-click="burst()">Burst</button>
+        </div>
+        <hr/>
+                
+        <div id="result" style="display: inline;">
+            <img ng-src="{{data}}" />
+        </div>
+                </div>
+            </div>
+        </div>
+     
+     
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Results</h3>
+               </div>
+               <div class="panel-body">
+                    <div class="image-container">
+                    <dcap-Object click-handler="openFolder(path, name)" properties="dcapResults"></dcap-Object> 
+                    </div>
+               </div>
+            </div>
+        </div>
+        
+    </div>
+
+  

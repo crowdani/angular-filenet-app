@@ -1,0 +1,24 @@
+<div ng-switch on="properties['cmis:baseTypeId'].value">
+ 
+    <div ng-switch-when="cmis:folder">
+       <a href="" ng-click="click()"> 
+        <h4>
+        <span class="fa-stack fa-lg fa-fw">
+          <i class="fa fa-square-o fa-stack-2x"></i>
+          <i class="fa fa-folder-open fa-stack-1x"></i>
+        </span>
+        <span>{{properties['cmis:name'].value}}</span></h4>
+        
+        <span>Updated on  {{properties['cmis:creationDate'].value | date:'medium'}} By <a href="{{properties['cmis:lastModifiedBy'].value}}">{{properties['cmis:lastModifiedBy'].value}}</a></span> 
+        </a>
+    </div>
+    <div ng-switch-when="cmis:document">
+            <h4><a href="{{properties['cmis:objectId'].value | downloadUrl:true}}"><i class="fa fa-file fa-2x fa-fw"></i> {{properties['cmis:name'].value}}</a></h4>
+            <span>Upload on  {{properties['cmis:creationDate'].value | date:'medium'}} By <a href="{{properties['cmis:lastModifiedBy'].value}}">{{properties['cmis:lastModifiedBy'].value}}</a>  {{properties['cmis:contentStreamLength'].value }}Kb </span> 
+    </div>  
+    
+    <div ng-switch-default>
+        <h4>{{properties['cmis:name']}}</h4>
+    </div>
+ 
+</div>

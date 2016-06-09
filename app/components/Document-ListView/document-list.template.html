@@ -1,0 +1,23 @@
+
+<div class="row">
+    <ol class="breadcrumb">
+      <li ng-repeat="parent in parents">
+          <a ng-if="!$last" href="" ng-click="breadcrumb($index)" >{{parent.name}}</a>
+          <span ng-if="$last" class="active">{{parent.name}}</span>
+      </li>
+      
+    </ol>
+</div>
+    
+    <div class="list-group document-list-item">
+        <table class="table table-striped">
+            <tr ng-repeat="node in nodes" >
+                <td>  
+                    <cmis-object click-handler="openFolder(path, name)" properties="node.object.properties"></cmis-object>
+                </td>
+                <td><button type="button" class="btn btn-primary">Properties</button></td>
+            </tr>
+        </table>
+            
+    </div>
+        
